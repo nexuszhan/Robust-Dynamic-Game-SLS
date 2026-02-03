@@ -250,14 +250,6 @@ class NLP(OCP):
                 for t in range(N):
                     center, rad = agent[t]
                     assert len(center) <= nc
-                    # if len(center) == 2:
-                    #     f -= ca.sqrt(ca.sumsqr(Z[:2,t] - ca.DM(center)) + 1e-5) * 0.01 #0.1
-                    # elif len(center) == 3:
-                    #     f -= ca.sqrt(ca.sumsqr(Z[:3,t] - ca.DM(center)) + 1e-5) * 0.01 #0.1
-                    # if len(center) == 2:
-                    #     f -= ca.sqrt(ca.sumsqr(Z[:2,t] - ca.DM(center)) + 1e-5) * 0.001
-                    # elif len(center) == 3:
-                    #     f -= ca.sqrt(ca.sumsqr(Z[:3,t] - ca.DM(center)) + 1e-5) * 0.001
                     if len(center) == 2:
                         f -= ca.sqrt(ca.sumsqr(Z[:2,t] - ca.DM(center)) + 1e-5) * ca_weight
                     elif len(center) == 3:
@@ -266,11 +258,11 @@ class NLP(OCP):
         for agent in leaders:
             for t in range(N):
                 center, rad = agent[t]
-                f += ca.sqrt(ca.sumsqr(m.Gcf_2d@Z[:,t] - ca.DM(center)) + 1e-5) * 0.1
+                f += ca.sqrt(ca.sumsqr(m.Gcf_2d@Z[:,t] - ca.DM(center)) + 1e-5) * prox_weight
         for agent in followers:
             for t in range(N):
                 center, heading, backoff_follower, outer_approx_follower, rad_follower, half_cone_follower = agent[t]
-                f += ca.sqrt(ca.sumsqr(m.Gcf_2d@Z[:,t] - ca.DM(center)) + 1e-5) * 0.1
+                f += ca.sqrt(ca.sumsqr(m.Gcf_2d@Z[:,t] - ca.DM(center)) + 1e-5) * prox_weight
         
         # constraints
         g = []
@@ -579,8 +571,8 @@ class NLP(OCP):
             w2_y = ca.cos(Z_f[2] - half_cone + backoff_f[2])
 
             ineq = -((x_C-x_A_left)*w2_x + (y_C-y_A_left)*w2_y)
-            g = ca.vertcat(g, ineq)
-            # g = ca.vertcat(g, -1)
+            # g = ca.vertcat(g, ineq)
+            g = ca.vertcat(g, -1)
             
             # rightmost point
             x_A_right = Z_f[0] + dy / (divident + 1e-5)
@@ -598,8 +590,8 @@ class NLP(OCP):
             w1_y = -ca.cos(Z_f[2] + half_cone - backoff_f[2])
 
             ineq = -((x_B-x_A_right)*w1_x + (y_B-y_A_right)*w1_y)
-            g = ca.vertcat(g, ineq)
-            # g = ca.vertcat(g, -1)
+            # g = ca.vertcat(g, ineq)
+            g = ca.vertcat(g, -1)
         for agent in followers:
             g = ca.vertcat(g, -1)
             g = ca.vertcat(g, -1)

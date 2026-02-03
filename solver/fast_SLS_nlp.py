@@ -100,7 +100,7 @@ class fast_SLS(OCP):
                 self.current_iteration['success'] = True
                 self.convergence_data['iterations'] = i
                 if self.verbose:
-                    print('Fast-SLS: Solution found! Converged in {} iterations'.format(i+1))
+                    print('Fast-SLS: Solution found! Converged in {} iterations'.format(i))
                 solution = self.post_processing_solution()
                 # self.reset_solver_to_zeros(x0, goal)
                 return solution

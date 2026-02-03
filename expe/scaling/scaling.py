@@ -70,17 +70,15 @@ if __name__ == "__main__":
     LOS_targets = [[] for _ in range(N_agent)]
 
     use_LQR = [False for _ in range(N_agent)]
-
-    init_guess = None
     
     if N_agent <= 8:
         planner = IBR(T, Q_all, R_all, Qf_all, Q_reg_all, R_reg_all, Qf_reg_all, 
                                 N_agent, models, init_states, goals, static_obst, max_dists, min_dists, half_cones, LOS_targets, 
-                                config.ca_weight, config.prox_weight, use_LQR, init_guess, config.init_file, 0.1)
+                                config.ca_weight, config.prox_weight, use_LQR, config.init_file, 0.1)
     else:
         planner = IBR(T, Q_all, R_all, Qf_all, Q_reg_all, R_reg_all, Qf_reg_all, 
                                 N_agent, models, init_states, goals, static_obst, max_dists, min_dists, half_cones, LOS_targets, 
-                                config.ca_weight, config.prox_weight, use_LQR, init_guess, None, 0.5)
+                                config.ca_weight, config.prox_weight, use_LQR, config.init_file, 0.5)
     
     solutions = planner.solutions
     # save_dict = {}
