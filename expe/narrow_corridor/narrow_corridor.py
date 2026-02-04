@@ -1,10 +1,12 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import time
+import os
 
 from dyn.unicycle import Unicycle
 from solver.IBR import IBR
 from util.plot import plot_traj, check_feedback
+from initial_guess import generate_initial_guess
 
 if __name__ == "__main__":
     def E_func(X):
@@ -68,22 +70,22 @@ if __name__ == "__main__":
 
     planner = IBR(T, Q_all, R_all, Qf_all, Q_reg_all, R_reg_all, Qf_reg_all, 
                         N_agent, models, init_states, goals, static_obst, max_dists, min_dists, half_cones, LOS_targets, 
-                        ca_weight, prox_weight, use_LQR, init_guess_file, 0.3)
+                        ca_weight, prox_weight, use_LQR, 0.3)
     
+    if not os.path.isfile(init_guess_file):
+        generate_initial_guess(planner, init_guess_file)
+    
+    planner.initialize_solutions(init_guess_file)
     solutions = planner.solutions
-    # save_dict = {}
-    # save_dict[f"initial_trajs"] = np.array(solutions["nominal_trajs"])
-    # save_dict[f"initial_inputs"] = np.array(solutions["nominal_inputs"])
-    # save_dict[f"initial_vecs"] = np.array(solutions["nominal_vecs"])
-    # save_dict[f"initial_tubes"]          = np.array(solutions["tubes"])
-    # save_dict[f"initial_tubes_f"]        = np.array(solutions["tubes_f"])
-    # save_dict[f"initial_outer_approxes"]  = np.array(solutions["outer_approxes"])
-    # np.savez(f"narrow_corridor_init.npz", **save_dict)
     
     plot_traj(solutions["initial_trajs"], solutions["initial_tubes"], [np.zeros(m.nx) for _ in range(N_agent)], solutions["initial_outer_approxes"], models, static_obst, N_agent, init_states, goals, T, agent_rad)
     plt.savefig("narrow_corridor_init.png", format="png")
-
+    
+    start = time.perf_counter()
     solutions, success = planner.plan_all()
+    end = time.perf_counter()
+    print("Runtime: {:.5f}".format(end-start))
+
     plot_traj(solutions["nominal_trajs"], solutions["tubes"], solutions["tubes_f"], solutions["outer_approxes"], models, static_obst, N_agent, init_states, goals, T, agent_rad)
     plt.savefig("narrow_corridor.png", format="png")
 
