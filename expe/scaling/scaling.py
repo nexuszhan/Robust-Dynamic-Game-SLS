@@ -1,11 +1,12 @@
 import matplotlib.pyplot as plt
 import numpy as np
-import time
+import time, os
 
 from dyn.unicycle import Unicycle
 from solver.IBR import IBR
 from init_config import ScalingConfig4, ScalingConfig8, ScalingConfig16, ScalingConfig24
 from util.plot import plot_traj
+from initial_guess import generate_initial_guess
 
 if __name__ == "__main__":
     def E_func(X):
@@ -13,7 +14,7 @@ if __name__ == "__main__":
 
         return e
 
-    N_agent = 4 #24 #16 #8 #4 
+    N_agent = 8 #24 #16 #8 #4 
 
     if N_agent == 4:
         config = ScalingConfig4()
@@ -74,21 +75,17 @@ if __name__ == "__main__":
     if N_agent <= 8:
         planner = IBR(T, Q_all, R_all, Qf_all, Q_reg_all, R_reg_all, Qf_reg_all, 
                                 N_agent, models, init_states, goals, static_obst, max_dists, min_dists, half_cones, LOS_targets, 
-                                config.ca_weight, config.prox_weight, use_LQR, config.init_file, 0.1)
+                                config.ca_weight, config.prox_weight, use_LQR, 0.1)
     else:
         planner = IBR(T, Q_all, R_all, Qf_all, Q_reg_all, R_reg_all, Qf_reg_all, 
                                 N_agent, models, init_states, goals, static_obst, max_dists, min_dists, half_cones, LOS_targets, 
-                                config.ca_weight, config.prox_weight, use_LQR, config.init_file, 0.5)
+                                config.ca_weight, config.prox_weight, use_LQR, 0.5)
+        
+    if not os.path.isfile(config.init_file):
+        generate_initial_guess(planner, config.init_file)
     
+    planner.initialize_solutions(config.init_file)
     solutions = planner.solutions
-    # save_dict = {}
-    # save_dict[f"initial_trajs"] = np.array(solutions["nominal_trajs"])
-    # save_dict[f"initial_inputs"] = np.array(solutions["nominal_inputs"])
-    # save_dict[f"initial_vecs"] = np.array(solutions["nominal_vecs"])
-    # save_dict[f"initial_tubes"]          = np.array(solutions["tubes"])
-    # save_dict[f"initial_tubes_f"]        = np.array(solutions["tubes_f"])
-    # save_dict[f"initial_outer_approxes"]  = np.array(solutions["outer_approxes"])
-    # np.savez(f"scaling_{N_agent}_init.npz", **save_dict)
     
     plot_traj(solutions["initial_trajs"], solutions["initial_tubes"], [np.zeros(m.nx) for _ in range(N_agent)], solutions["initial_outer_approxes"], models, [], N_agent, init_states, goals, T, agent_rad)
     plt.savefig(f"scaling_{N_agent}_init.png", format="png")
