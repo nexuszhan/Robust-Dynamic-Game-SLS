@@ -14,6 +14,7 @@ class NLP(OCP):
         self.nlp_solver_name = "ipopt"
         self.nominal_solver_options = {
             "ipopt.print_level":0,
+            "ipopt.sb": "yes",
             "print_time": False,
             'ipopt.tol': 1e-6,
             'ipopt.constr_viol_tol': 1e-6,

@@ -14,7 +14,7 @@ if __name__ == "__main__":
 
         return e
 
-    N_agent = 8 #24 #16 #8 #4 
+    N_agent = 24 #24 #16 #8 #4 
 
     if N_agent == 4:
         config = ScalingConfig4()

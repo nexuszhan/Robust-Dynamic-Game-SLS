@@ -106,7 +106,7 @@ class ScalingConfig16:
     x_min: np.ndarray = np.array([-100., -100., -100., -5.])
     u_max: np.ndarray = np.array([np.pi/2, 5.]) 
     u_min: np.ndarray = np.array([-np.pi/2, -5.])
-    ca_weight: float = 0.0001
+    ca_weight: float = 0. #0.0001
     prox_weight: float = 0.1 # no effect
     init_file: str = "scaling_16_init.npz"
     
@@ -128,6 +128,6 @@ class ScalingConfig24:
     x_min: np.ndarray = np.array([-100., -100., -100., -5.])
     u_max: np.ndarray = np.array([np.pi/2, 5.]) 
     u_min: np.ndarray = np.array([-np.pi/2, -5.])
-    ca_weight: float = 0.0001
+    ca_weight: float = 0. #0.0001
     prox_weight: float = 0.1 # no effect
     init_file: str = "scaling_24_init.npz"
