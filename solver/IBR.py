@@ -1,10 +1,10 @@
 import matplotlib.pyplot as plt
 import numpy as np
-import time
+import time, copy
+
 from solver.fast_SLS_nlp import fast_SLS
 from dyn.LTV import LTV
 from solver.centralized_init import NLP
-import copy
 
 class IBR:
     def __init__(self, T, Q_all, R_all, Qf_all, Q_reg_all, R_reg_all, Qf_reg_all, 
