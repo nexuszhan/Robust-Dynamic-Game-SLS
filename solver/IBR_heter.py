@@ -259,7 +259,6 @@ class IBR:
                     return self.solutions, False
                 
                 convergence[idx] = np.all(np.fabs(sol["primal_x"] - self.solutions["nominal_trajs"][idx]) <= self.CONV_THRES)
-                print(np.max(np.fabs(sol["primal_x"] - self.solutions["nominal_trajs"][idx])))
 
                 forward_runtime += sol["forward_time"]
                 backward_runtime += sol["backward_time"]
