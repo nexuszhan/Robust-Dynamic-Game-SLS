@@ -1,14 +1,14 @@
 import casadi as ca
 import numpy as np
+from scipy.linalg import block_diag
 
 from solver.ocp import OCP
 from dyn.LTV import LTV
 from dyn.LTI import LTI
-from scipy.linalg import block_diag
 
 class NLP():
     def __init__(self, N, Q_all, R_all, model_all, Qf_all, x0_all, goal_all, obstacles, N_agent, radius):
-        # super().__init__(N, Q, R, m, Qf)
+        
         self.ocps = [OCP(N, Q_all[n], R_all[n], model_all[n], Qf_all[n]) for n in range(N_agent)]
 
         self.nlp_solver_name = "ipopt"
@@ -81,9 +81,6 @@ class NLP():
         self.solution['primal_x_all'] = []
         self.solution['primal_u_all'] = []
 
-        # self.solution['dual_vec_all'] = []
-        # self.solution['dual_mu_all'] = []
-        # self.solution['dual_mu_f_all'] = []
         for n in range(self.N_agent):
             ocp = self.ocps[n]
             m = ocp.m

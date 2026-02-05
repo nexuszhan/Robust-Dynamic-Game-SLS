@@ -23,7 +23,7 @@ if __name__ == "__main__":
     elif N_agent == 16:
         config = ScalingConfig16()
     elif N_agent == 24:
-        config= ScalingConfig24()
+        config = ScalingConfig24()
     else:
         raise NotImplementedError
     
