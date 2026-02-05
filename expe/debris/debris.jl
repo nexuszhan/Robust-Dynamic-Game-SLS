@@ -16,16 +16,6 @@ dt = 0.1 # each step lasts 0.1 second
 probsize = ProblemSize(N,model) # Structure holding the relevant sizes of the problem
 
 # Define the objective of each player
-# We use a LQR cost
-# Q = [Diagonal(5*ones(SVector{model.ni[i],T})) for i=1:p] # Quadratic state cost
-# Q = [begin
-#         v = 5*ones(SVector{model.ni[i], T})
-#         v = setindex(v, 0.0, 2)   # replace second entry with 0
-#         Diagonal(v)
-#      end for i = 1:p]
-# q = Diagonal(SVector(1, 1, 0, 1))    # 4×4 static diagonal
-# M = blockdiag(Q, Q, Q)
-# display(Diagonal(SVector{model.ni[1],T}([1,1,0,1])))
 Q = [Diagonal(SVector{model.ni[i],T}([3., 3., 0, 1.])) for i=1:p]
 R = [Diagonal(zeros(SVector{model.mi[i],T})) for i=1:p] # Quadratic control cost
 # Desrired state
@@ -48,29 +38,16 @@ game_con = GameConstraintValues(probsize)
 radius = 0.06
 add_collision_avoidance!(game_con, radius)
 # Add control bounds
-# u_max =  2*ones(SVector{m,T})
-# u_min = -2*ones(SVector{m,T})
 u_max = SVector{m,T}([3.14159/2, 3.14159/2, 3.14159/2,  3.14159/2, 0.1, 0.1, 0.1, 0.1])
 u_min = SVector{m,T}([-3.14159/2, -3.14159/2, -3.14159/2, -3.14159/2, -0.1, -0.1, -0.1, -0.1])
 add_control_bound!(game_con, u_max, u_min)
 # # Add state bounds for player 1
-# x_max =  5*ones(SVector{n,T})
-# x_min = -5*ones(SVector{n,T})
 x_max = SVector{n,T}([5., 5., 5., 5., 5., 5., 5., 5., 10., 10., 10., 10., 0.2, 0.2, 0.2, 0.2])
 x_min = SVector{n,T}([-5., -5., -5., -5., -5., -5., -5., -5., -10., -10., -10., -10., -0.1, -0.1, -0.1, -0.1])
 add_state_bound!(game_con, 1, x_max, x_min)
 add_state_bound!(game_con, 2, x_max, x_min)
 add_state_bound!(game_con, 3, x_max, x_min)
 add_state_bound!(game_con, 4, x_max, x_min)
-# Add wall constraint
-# walls = [Wall([0.0,-0.4], [1.0,-0.4], [0.,-1.])]
-# add_wall_constraint!(game_con, walls)
-# Add circle constraint
-# xc = [0., 0.]
-# yc = [0.5, -0.6]
-# radius = [0.3, 0.4]
-# add_circle_constraint!(game_con, 1, xc, yc, radius)
-# add_circle_constraint!(game_con, 2, xc, yc, radius)
 
 # Define the initial state of the system
 x0 = SVector{model.n,T}([
@@ -110,9 +87,6 @@ function plot_circles!(plt, xc::AbstractVector, yc::AbstractVector, r::AbstractV
         plot!(plt, [x; x[1]], [y; y[1]];
               seriestype=:shape, fillalpha=fillalpha, fillcolor=fillcolor,
               linecolor=:transparent, label=nothing)
-
-        # mark center
-        # scatter!(plt, [xc[i]], [yc[i]]; marker=:cross, ms=5, label=nothing, c=linecolor)
     end
     return plt
 end
@@ -132,13 +106,11 @@ function plot_traj_with_constraints(prob, r; kwargs...)
     xlabel!("x"); ylabel!("y"); aspect_ratio=:equal; 
     return traj
 end
-# traj = plot(prob.model, prob.pdtraj.pr)
 
 traj = plot_traj_with_constraints(
     prob, radius;
     fillalpha=0.9, fillcolor=:black, linecolor=:black, linestyle=:solid
 )
-# plot(prob.stats)
 savefig(traj, "traj.png")
 
 using DelimitedFiles
@@ -165,4 +137,4 @@ u4_linear = [Algames.control(prob.pdtraj.pr[k])[model.pu[4][2]] for k=1:N]
 
 X = vcat(x1', y1', u1_angular', u1_linear', x2', y2', u2_angular', u2_linear',
         x3', y3', u3_angular', u3_linear', x4', y4', u4_angular', u4_linear')
-writedlm("Algame_four_agent_circle.csv", X, ',')
+writedlm("Algame_debris.csv", X, ',')

@@ -45,9 +45,6 @@ x_max =  5*ones(SVector{n,T})
 x_min = -5*ones(SVector{n,T})
 add_state_bound!(game_con, 1, x_max, x_min)
 add_state_bound!(game_con, 2, x_max, x_min)
-# Add wall constraint
-# walls = [Wall([0.0,-0.4], [1.0,-0.4], [0.,-1.])]
-# add_wall_constraint!(game_con, walls)
 # Add circle constraint
 xc = [0., 0.]
 yc = [0.5, -0.6]
@@ -93,9 +90,6 @@ function plot_circles!(plt, xc::AbstractVector, yc::AbstractVector, r::AbstractV
         plot!(plt, [x; x[1]], [y; y[1]];
               seriestype=:shape, fillalpha=fillalpha, fillcolor=fillcolor,
               linecolor=:transparent, label=nothing)
-
-        # mark center
-        # scatter!(plt, [xc[i]], [yc[i]]; marker=:cross, ms=5, label=nothing, c=linecolor)
     end
     return plt
 end
@@ -116,23 +110,18 @@ function plot_traj_with_constraints(prob, xc, yc, r; kwargs...)
     xlabel!("x"); ylabel!("y"); aspect_ratio=:equal; 
     return traj
 end
-# traj = plot(prob.model, prob.pdtraj.pr)
 
 traj = plot_traj_with_constraints(
     prob, xc, yc, radius;
     fillalpha=0.9, fillcolor=:black, linecolor=:black, linestyle=:solid
 )
-# plot(prob.stats)
 savefig(traj, "traj.png")
 
 using DelimitedFiles
 
 x1 = [Algames.state(prob.pdtraj.pr[k])[model.pz[1][1]] for k=1:N] 
 y1 = [Algames.state(prob.pdtraj.pr[k])[model.pz[1][2]] for k=1:N]
-# u1_all = [get_u(prob, k) for k=1:N]
-# display(u1_all)
 u1_angular = [Algames.control(prob.pdtraj.pr[k])[model.pu[1][1]] for k=1:N]
-# display(u11)
 u1_linear = [Algames.control(prob.pdtraj.pr[k])[model.pu[1][2]] for k=1:N]
 
 x2 = [Algames.state(prob.pdtraj.pr[k])[model.pz[2][1]] for k=1:N] 
