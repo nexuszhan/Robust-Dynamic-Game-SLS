@@ -1,7 +1,8 @@
 # Robust-Dynamic-Game-SLS
-Implementation of algorithm proposed in [Robust Constrained Dynamic Games for Uncertain Dynamics](https://arxiv.org/abs/2509.16826). 
+Implementation of algorithm proposed in [Robustly Constrained Dynamic Games for Uncertain Dynamics](https://arxiv.org/abs/2509.16826). 
+If you are interested, please take a look at the [video](https://drive.google.com/file/d/1K_BZBQ4TzrMYfRazLCbyDwR1ElJraAgF/view?usp=drive_link) introducing this work. 
 
-# Setup
+## Setup
 - `conda create -n robust-dyna-game-sls python=3.10`
 - `conda activate robust-dyna-game-sls`
 - `pip install -r requirements.txt`
