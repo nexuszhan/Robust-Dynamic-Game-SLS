@@ -8,7 +8,8 @@ from solver.centralized_init import NLP
 
 class IBR:
     def __init__(self, T, Q_all, R_all, Qf_all, Q_reg_all, R_reg_all, Qf_reg_all, 
-                 N_agent, models, init_states, goals, static_obstacles, max_dists, min_dists, half_cones, LOS_targets,
+                 N_agent, models, init_states, goals, static_obstacles, 
+                 max_dists, min_dists, half_cones, LOS_targets,
                  ca_weight, prox_weight, use_LQR, alpha=0.2):
         """
         :param T: plan horizon
@@ -131,14 +132,16 @@ class IBR:
         solver.verbose = True
         if init_guess is None:
             solution = solver.solve(x0, goal, obstacles, other_agents, self.max_dists[idx], self.min_dists[idx], 
-                                    LOS_targets, [], self.half_cones[idx], self.ca_weight, self.prox_weight, self.use_LQR[idx], self.solutions["nominal_vecs"][idx])
+                                    LOS_targets, [], self.half_cones[idx], 
+                                    self.ca_weight, self.prox_weight, self.use_LQR[idx], self.solutions["nominal_vecs"][idx])
         else:
             solution = solver.solve(x0, goal, obstacles, other_agents, self.max_dists[idx], self.min_dists[idx], 
-                                    LOS_targets, [], self.half_cones[idx], self.ca_weight, self.prox_weight, self.use_LQR[idx], init_guess[idx])
+                                    LOS_targets, [], self.half_cones[idx], 
+                                    self.ca_weight, self.prox_weight, self.use_LQR[idx], init_guess[idx])
         
         if it != self.MAX_ITER-1:
-            solution = solver.get_updated_sol_with_lr(self.init_states[idx], self.solutions["nominal_trajs"][idx], self.solutions["nominal_inputs"][idx], 
-                                                  self.solutions["etas"][idx], self.solutions["eta_fs"][idx], self.alpha)
+            solution = solver.get_updated_sol(self.init_states[idx], self.solutions["nominal_trajs"][idx], 
+                                              self.solutions["nominal_inputs"][idx], self.alpha)
 
         return solution
     

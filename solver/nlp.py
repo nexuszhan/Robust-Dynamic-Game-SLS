@@ -1,11 +1,10 @@
 import numpy as np
+from scipy.linalg import block_diag
+import casadi as ca
 
 from solver.ocp import OCP
 from dyn.LTV import LTV
 from dyn.LTI import LTI
-from scipy.linalg import block_diag
-
-import casadi as ca
 
 class NLP(OCP):
     def __init__(self, N, Q, R, m, Qf, x0, goal, obstacles, other_agents, max_dist, min_dist, leaders, followers):
@@ -57,7 +56,7 @@ class NLP(OCP):
         self.goal = goal
         
         self.other_agent_constr_num = 0
-        self.initialize_nlp(x0, goal, obstacles, other_agents, max_dist, min_dist, leaders, followers)
+        self.initialize_nlp(x0, obstacles, other_agents, max_dist, min_dist, leaders, followers)
 
     def solve(self, x0):
         """
@@ -141,7 +140,7 @@ class NLP(OCP):
         x_p = x + (1 / 6) * (k_1 + 2 * k_2 + 2 * k_3 + k_4) * h
         return x_p
 
-    def initialize_nlp(self, x0, goal, obstacles, other_agents, max_dist, min_dist, leaders, followers):
+    def initialize_nlp(self, x0, obstacles, other_agents, max_dist, min_dist, leaders, followers):
         nx = self.m.nx
         nu = self.m.nu
         ni = self.m.ni
@@ -149,7 +148,6 @@ class NLP(OCP):
         N = self.N
         m = self.m
         n_obst = self.n_obst
-        n_other = self.n_other
         n_leader = self.n_leader
         n_follower = self.n_follower
         nc = m.nc
@@ -203,15 +201,10 @@ class NLP(OCP):
         
         self.init_guess = np.concatenate([ np.tile(np.concatenate([x0, np.zeros((nu))]), N), self.goal])
 
-    def update_nlp(self, x0, goal, obstacles, other_agents, max_dist, min_dist, leaders, followers, backoff, backoff_f, outer_approx, half_cone, ca_weight, prox_weight, LQR_cost=False):
-        nx = self.m.nx
-        nu = self.m.nu
-        ni = self.m.ni
-        ni_f = self.m.ni_f
+    def update_nlp(self, goal, obstacles, other_agents, min_dist, leaders, followers, backoff, backoff_f, 
+                   outer_approx, half_cone, ca_weight, prox_weight, LQR_cost=False):
         N = self.N
         m = self.m
-        n_obst = self.n_obst
-        n_other = self.n_other
         nc = m.nc
 
         Y = ca.MX.sym("state-input", self.m.nx+self.m.nu, self.N)

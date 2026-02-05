@@ -10,9 +10,7 @@ def generate_initial_guess(planner:IBR, initial_guess_file:str):
 
     if planner.N_agent > 8 and planner.N_agent % 8 == 0:
         # print("break to several 8-agent teams")
-        # offsets = [0.2, 0.23, 0.25] # N=16
-        # offsets = [0.1, 0.1] # N=16 2
-        offsets = [0.1, 0.1, 0.25, 0.8] # N=24
+        offsets = [0.1, 0.1, 0.25, 0.8] 
         for it in range(int(planner.N_agent / 8)):
             Q_all = planner.Q_all[it*8:(it+1)*8]
             R_all = planner.R_all[it*8:(it+1)*8]
@@ -38,12 +36,6 @@ def generate_initial_guess(planner:IBR, initial_guess_file:str):
                 planner.solutions["initial_inputs"][n] = copy.deepcopy(solution["primal_u_all"][n-it*8])
                 idx_start = idx_end
                 
-                # self.solutions["tubes"][n] = np.zeros((self.N, m.nx)) 
-                # self.solutions["tubes_f"][n] = np.zeros((m.nx)) 
-                # self.solutions["initial_tubes"][n] = np.zeros((self.N, m.nx)) 
-                # self.solutions["outer_approxes"][n] = np.zeros((self.N+1, m.nx)) 
-                # self.solutions["initial_outer_approxes"][n] = np.zeros((self.N+1, m.nx)) 
-                # N=16 24
                 planner.solutions["tubes"][n] = np.zeros((planner.T, m.nx)) + 0.05
                 planner.solutions["tubes_f"][n] = np.zeros((m.nx)) + 0.05
                 planner.solutions["initial_tubes"][n] = np.zeros((planner.T, m.nx)) + 0.05

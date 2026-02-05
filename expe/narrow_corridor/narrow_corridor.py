@@ -68,8 +68,9 @@ if __name__ == "__main__":
     init_guess_file = "narrow_corridor_init.npz"
 
     planner = IBR(T, Q_all, R_all, Qf_all, Q_reg_all, R_reg_all, Qf_reg_all, 
-                        N_agent, models, init_states, goals, static_obst, max_dists, min_dists, half_cones, LOS_targets, 
-                        ca_weight, prox_weight, use_LQR, 0.3)
+                  N_agent, models, init_states, goals, static_obst, 
+                  max_dists, min_dists, half_cones, LOS_targets, 
+                  ca_weight, prox_weight, use_LQR, 0.3)
     
     if not os.path.isfile(init_guess_file):
         generate_initial_guess(planner, init_guess_file)
@@ -77,7 +78,9 @@ if __name__ == "__main__":
     planner.initialize_solutions(init_guess_file)
     solutions = planner.solutions
     
-    plot_traj(solutions["initial_trajs"], solutions["initial_tubes"], [np.zeros(m.nx) for _ in range(N_agent)], solutions["initial_outer_approxes"], models, static_obst, N_agent, init_states, goals, T, agent_rad)
+    plot_traj(solutions["initial_trajs"], solutions["initial_tubes"], 
+              [np.zeros(m.nx) for _ in range(N_agent)], solutions["initial_outer_approxes"], 
+              models, static_obst, N_agent, init_states, goals, T, agent_rad)
     plt.savefig("narrow_corridor_init.png", format="png")
     
     start = time.perf_counter()
@@ -85,7 +88,9 @@ if __name__ == "__main__":
     end = time.perf_counter()
     print("Runtime: {:.5f}".format(end-start))
 
-    plot_traj(solutions["nominal_trajs"], solutions["tubes"], solutions["tubes_f"], solutions["outer_approxes"], models, static_obst, N_agent, init_states, goals, T, agent_rad)
+    plot_traj(solutions["nominal_trajs"], solutions["tubes"], 
+              solutions["tubes_f"], solutions["outer_approxes"], 
+              models, static_obst, N_agent, init_states, goals, T, agent_rad)
     plt.savefig("narrow_corridor.png", format="png")
 
     for idx in range(N_agent):

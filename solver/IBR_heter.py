@@ -6,7 +6,8 @@ from dyn.LTV import LTV
 
 class IBR:
     def __init__(self, T, Q_all, R_all, Qf_all, Q_reg_all, R_reg_all, Qf_reg_all, 
-                 N_agent, models, init_states, goals, static_obstacles, max_dists, min_dists, half_cones, LOS_targets, followers, 
+                 N_agent, models, init_states, goals, static_obstacles, 
+                 max_dists, min_dists, half_cones, LOS_targets, followers, 
                  ca_weight, prox_weight, use_LQR, alpha=0.5):
         """
         :param T: plan horizon
@@ -129,14 +130,16 @@ class IBR:
         solver.verbose = True
         if init_guess is None:
             solution = solver.solve(x0, goal, obstacles, other_agents, self.max_dists[idx], self.min_dists[idx], 
-                                    leaders, followers, self.half_cones[idx], self.ca_weight, self.prox_weight, self.use_LQR[idx], self.solutions["nominal_vecs"][idx])
+                                    leaders, followers, self.half_cones[idx], 
+                                    self.ca_weight, self.prox_weight, self.use_LQR[idx], self.solutions["nominal_vecs"][idx])
         else:
             solution = solver.solve(x0, goal, obstacles, other_agents, self.max_dists[idx], self.min_dists[idx], 
-                                    leaders, followers, self.half_cones[idx], self.ca_weight, self.prox_weight, self.use_LQR[idx], init_guess[idx])
+                                    leaders, followers, self.half_cones[idx], 
+                                    self.ca_weight, self.prox_weight, self.use_LQR[idx], init_guess[idx])
             
         if it != self.MAX_ITER:
-            solution = solver.get_updated_sol_with_lr(self.init_states[idx], self.solutions["nominal_trajs"][idx], self.solutions["nominal_inputs"][idx], 
-                                                      [], [], self.alpha)
+            solution = solver.get_updated_sol(self.init_states[idx], self.solutions["nominal_trajs"][idx], 
+                                              self.solutions["nominal_inputs"][idx], self.alpha)
 
         return solution
     
@@ -168,6 +171,7 @@ class IBR:
                             obstacle[t] = (traj[:2, t], reachable_set_approx + self.min_dists[i])
                         reachable_set_approx = min(outer_approx[self.T, 0], np.sqrt(tube_f[0]**2+tube_f[1]**2))
                         obstacle[self.T] = (traj[:2, self.T], reachable_set_approx + self.min_dists[i])
+                    else:
                         raise NotImplementedError
                     
                     dynamic_obstacles.append(obstacle)

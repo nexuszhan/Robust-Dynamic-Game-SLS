@@ -1,6 +1,9 @@
 import casadi as ca
 import numpy as np
 from scipy.linalg import block_diag
+from matplotlib import pyplot as plt
+from prettytable import PrettyTable, NONE, HEADER
+import time
 
 from solver.ocp import OCP
 from solver.nlp import NLP
@@ -9,20 +12,13 @@ from dyn.LTV import LTV
 from util.SLS import SLS
 from util.minkowski_sum import minkowski_sum_N_ellipsoids_outer
 
-from matplotlib import pyplot as plt
-from prettytable import PrettyTable, NONE, HEADER
-
-import time
-
-
 class fast_SLS(OCP):
     """
-    This class is an implementation of the corresponding class in matlab: https://github.com/antoineleeman/fast-SLS/blob/new-branch/solver/KKT_SLS.m
-    The class is used to solve the optimal control problem using the fast-SLS algorithm.
-    This class works for LTI and LTV models.
+    This class adjusts fast SLS to use an NLP for trajectory optimization
     """
 
-    def __init__(self, N, Q, R, m, Qf, n_obst, n_other, n_leader, n_follower, m_nonlinear, Q_reg=None, R_reg=None, Q_reg_f=None):
+    def __init__(self, N, Q, R, m, Qf, n_obst, n_other, n_leader, n_follower, m_nonlinear, 
+                 Q_reg=None, R_reg=None, Q_reg_f=None):
         """
         :param N: int: The horizon length.
         :param Q: numpy array: The state cost matrix.
@@ -40,7 +36,7 @@ class fast_SLS(OCP):
 
         # parameter solver
         self.epsilon_backoff = 1e-10
-        self.MAX_ITER = 30 #100
+        self.MAX_ITER = 30 
         self.current_iteration = {}  # structure that contains current iteration data
         self.convergence_data = {}  # timings, number of iterations, convergence, etc.
         self.save_it_data = True
@@ -61,7 +57,8 @@ class fast_SLS(OCP):
 
         # self.initialize_backoff()
 
-    def solve(self, x0, goal, obstacles, other_agents, max_dist, min_dist, leaders, followers, half_cone, ca_weight, prox_weight, lqr=False, init_guess=None):
+    def solve(self, x0, goal, obstacles, other_agents, max_dist, min_dist, leaders, followers, half_cone, 
+              ca_weight, prox_weight, lqr=False, init_guess=None):
         """
         This method solves the optimal control problem using the fast-SLS algorithm.
         :param x0:
@@ -76,7 +73,7 @@ class fast_SLS(OCP):
 
         for i in range(self.MAX_ITER):
             start = time.perf_counter()
-            if not self.forward_solve(x0, goal, obstacles, other_agents, max_dist, min_dist, leaders, followers, half_cone, ca_weight, prox_weight, lqr):
+            if not self.forward_solve(x0, goal, obstacles, other_agents, min_dist, leaders, followers, half_cone, ca_weight, prox_weight, lqr):
                 break
             end = time.perf_counter()
             self.current_iteration["forward_time"] += end-start
@@ -92,7 +89,7 @@ class fast_SLS(OCP):
             self.current_iteration["backward_time"] += end-start
 
             start = time.perf_counter()
-            self.update_tightening(obstacles)
+            self.update_tightening()
             end = time.perf_counter()
             self.current_iteration["tighten_time"] += end-start
 
@@ -179,7 +176,6 @@ class fast_SLS(OCP):
         n_obst = self.n_obst
         n_other = self.n_other
         n_leader = self.n_leader
-        n_follower = self.n_follower
 
         self.current_iteration['primal_vec'] = np.nan
         self.current_iteration['primal_x'] = np.nan
@@ -250,8 +246,6 @@ class fast_SLS(OCP):
         nx = m.nx
         nu = m.nu
         N = self.N
-        ni = m.ni
-        ni_f = m.ni_f
 
         self.solver_forward = NLP(self.N, self.Q, self.R, m, self.Qf, x0, goal, obstacles, other_agents, max_dist, min_dist, LOS_targets, followers)
         self.solver_forward.E_func = self.m_nonlinear.E_func
@@ -262,7 +256,7 @@ class fast_SLS(OCP):
 
         return self.solver_forward
 
-    def forward_solve(self, x0, goal, obstacles, other_agents, max_dist, min_dist, LOS_targets, followers, half_cone, ca_weight, prox_weight, lqr=False):
+    def forward_solve(self, x0, goal, obstacles, other_agents, min_dist, LOS_targets, followers, half_cone, ca_weight, prox_weight, lqr=False):
         """
         This method solves the forward pass of the fast-SLS algorithm. In particular, it solves a linear trajectory
         optimization problem. For each iteration of the fast-SLS algorithm, it solves the problem with different
@@ -270,16 +264,11 @@ class fast_SLS(OCP):
         :param x0: initial conditions
         :return:
         """
-        nx = self.m.nx
-        nu = self.m.nu
-        ni = self.m.ni
-        ni_f = self.m.ni_f
-        N = self.N
         
         if self.n_leader > 0 or self.n_follower > 0 or self.init_nlp:
-            self.solver_forward.update_nlp(x0, goal, obstacles, other_agents, max_dist, min_dist, LOS_targets, followers,
-                                            self.current_iteration["backoff"][:,:6], self.current_iteration["backoff_f"][:6], self.current_iteration["outer_approx"],
-                                              half_cone, ca_weight, prox_weight, lqr)
+            self.solver_forward.update_nlp(goal, obstacles, other_agents, min_dist, LOS_targets, followers,
+                                           self.current_iteration["backoff"][:,:6], self.current_iteration["backoff_f"][:6], self.current_iteration["outer_approx"],
+                                           half_cone, ca_weight, prox_weight, lqr)
             self.init_nlp = False
         solution_forward = self.solver_forward.solve(x0)
 
@@ -324,9 +313,7 @@ class fast_SLS(OCP):
         """
         nx = self.m.nx
         nu = self.m.nu
-        nw = self.m.nw
         N = self.N
-        nc = self.m.nc
 
         primal_x = self.current_iteration['primal_x']
         primal_u = self.current_iteration['primal_u']
@@ -360,10 +347,6 @@ class fast_SLS(OCP):
         N = self.N
         nx = m.nx
         nu = m.nu
-        nc = m.nc
-        n_obst = self.n_obst
-        n_other = self.n_other
-        n_leader = self.n_leader
 
         G_f = m.Gf
         G = m.G
@@ -404,7 +387,6 @@ class fast_SLS(OCP):
         ni_f = self.m.ni_f
         nc = self.m.nc
         n_obst = self.n_obst
-        n_other = self.n_other
         n_leader = self.n_leader
         n_follower = self.n_follower
 
@@ -468,7 +450,6 @@ class fast_SLS(OCP):
         N = self.N
         n_obst = self.n_obst
         nc = self.m.nc
-        n_other = self.n_other
         n_leader = self.n_leader
         n_follower = self.n_follower
 
@@ -519,7 +500,7 @@ class fast_SLS(OCP):
 
         return delta_primal <= 1e-3 and delta_tube <= 1e-3
 
-    def update_tightening(self, obstacles):
+    def update_tightening(self):
         """
         This method updates the backoff for the next iteration of the fast-SLS algorithm. It uses the controller K_kj to calculate the values of the matrices Phi_x and Phi_u and compute the corresponding backoff
         :return:
@@ -533,21 +514,15 @@ class fast_SLS(OCP):
         ni_f = self.m.ni_f
         nc = self.m.nc
         n_obst = self.n_obst
-        n_other = self.n_other
         n_leader = self.n_leader
         n_follower = self.n_follower
-        Gc = self.m.Gc
-        Gcf = self.m.Gcf
-        Gheadingf = self.m.Gheadingf
 
         G = self.m.G
         Gf = self.m.Gf
-        gf = self.gf
 
         A = self.A_list
         B = self.B_list
         E = self.E_list
-        g = self.g_list
 
         # initialize the Phi_x and Phi_u matrices
         Phi_x = np.full((N + 1, N + 1, nx, nw), np.nan)
@@ -762,12 +737,12 @@ class fast_SLS(OCP):
     def update_tube(self):
         self.update_jacobian()
         self.backward_solve()
-        self.update_tightening([])
+        self.update_tightening()
 
-    def get_updated_sol_with_lr(self, x0, prev_z, prev_v, prev_eta, prev_eta_f, lr):
-        self.update_traj(x0, prev_v, prev_z, lr)
+    def get_updated_sol(self, x0, prev_z, prev_v, alpha):
+        self.update_traj(x0, prev_v, prev_z, alpha)
         self.update_tube()
-
+        
         sol = self.post_processing_solution()
         return sol
 

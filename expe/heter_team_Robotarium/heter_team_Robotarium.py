@@ -181,7 +181,7 @@ if __name__ == "__main__":
     use_lqr = [False] * N_agent
 
     ca_weight = 0.001
-    prox_weight = 0.001 #0.01
+    prox_weight = 0.001 
     init_guess_file = "heter_team_robotarium_init.npz"
 
     planner = IBR(T, Q_all, R_all, Qf_all, Q_reg_all, R_reg_all, Qf_reg_all,
