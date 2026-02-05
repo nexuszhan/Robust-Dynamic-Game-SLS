@@ -1,5 +1,4 @@
-import copy
-import time
+import copy, time, os
 
 import numpy as np
 import matplotlib.patches as patches
@@ -9,6 +8,7 @@ from dyn.crazyflie import Crazyflie
 from dyn.dubinscar import DubinsCar
 from solver.IBR_heter import IBR
 from util.plot import plot_reachable_set
+from initial_guess import generate_initial_guess
 
 def save_solutions(path, solutions, n_agent):
     save_dict = {}
@@ -27,7 +27,6 @@ def plot_traj(trajs, tubes, tubes_f, approxes, models, static_obst, N_agent, ini
     fig, ax = plt.subplots()
     fig.set_size_inches(8, 6)
 
-    # colors = ['r', 'b', 'g', 'c', 'y', 'grey', 'm', 'navy', 'orange', 'brown']
     colors = ['red', 'orange', 'yellow', 'blue', 'navy', 'cyan']
     
     for obst in static_obst:
@@ -45,25 +44,13 @@ def plot_traj(trajs, tubes, tubes_f, approxes, models, static_obst, N_agent, ini
         ax.plot(x_plan, y_plan, markersize=1, c=colors[n])
         ax.plot(init_states[n][0], init_states[n][1], 'x', c=colors[n])
         ax.plot(goals[n][0], goals[n][1], '*', c=colors[n])
-        # ax.quiver(x_plan, y_plan, np.cos(theta_plan), np.sin(theta_plan), color=colors[n], width=0.002, scale=20)
 
         tube = tubes[n]
         approx = approxes[n]
         for t in range(1, N):
-            # ellipsoid = patches.Ellipse((x_plan[t], y_plan[t]), 2*(tube[t,0]+agent_rad), 2*(tube[t,1]+agent_rad), angle=0, facecolor=colors[n], edgecolor=colors[n])
-            # ax.add_patch(ellipsoid)
             plot_reachable_set((x_plan[t], y_plan[t]), agent_rad, tube[t,0], tube[t,1], approx[t,0], colors[n], ax=ax)
         tube_f = tubes_f[n]
-        # ellipsoid = patches.Ellipse((x_plan[N], y_plan[N]), 2*(tube_f[0]+agent_rad), 2*(tube_f[1]+agent_rad), angle=0, facecolor=colors[n], edgecolor=colors[n])
-        # ax.add_patch(ellipsoid)
         plot_reachable_set((x_plan[N], y_plan[N]), agent_rad, tube_f[0], tube_f[1], approx[N,0], colors[n], ax=ax)
-        
-        # for t in range(1, N):
-        #     ellipsoid = patches.Ellipse((x_plan[t], y_plan[t]), 2*agent_rad, 2*agent_rad, angle=0, facecolor='k', edgecolor='k')
-        #     ax.add_patch(ellipsoid)
-        # ellipsoid = patches.Ellipse((x_plan[N], y_plan[N]), 2*agent_rad, 2*agent_rad, angle=0, facecolor='k', edgecolor='k')
-        # ax.add_patch(ellipsoid)
-        # continue
 
         n = i+1
         m = models[n]
@@ -80,19 +67,9 @@ def plot_traj(trajs, tubes, tubes_f, approxes, models, static_obst, N_agent, ini
         tube = tubes[n]
         approx = approxes[n]
         for t in range(1, N):
-            # ellipsoid = patches.Ellipse((x_plan[t], y_plan[t]), 2*(tube[t,0]+agent_rad), 2*(tube[t,1]+agent_rad), angle=0, facecolor=colors[n], edgecolor=colors[n])
-            # ax.add_patch(ellipsoid)
             plot_reachable_set((x_plan[t], y_plan[t]), agent_rad, tube[t,0], tube[t,1], approx[t,0], colors[n], ax=ax)
         tube_f = tubes_f[n]
-        # ellipsoid = patches.Ellipse((x_plan[N], y_plan[N]), 2*(tube_f[0]+agent_rad), 2*(tube_f[1]+agent_rad), angle=0, facecolor=colors[n], edgecolor=colors[n])
-        # ax.add_patch(ellipsoid)
         plot_reachable_set((x_plan[N], y_plan[N]), agent_rad, tube_f[0], tube_f[1], approx[N,0], colors[n], ax=ax)
-
-        # for t in range(1, N):
-        #     ellipsoid = patches.Ellipse((x_plan[t], y_plan[t]), 2*agent_rad, 2*agent_rad, angle=0, facecolor='k', edgecolor='k')
-        #     ax.add_patch(ellipsoid)
-        # ellipsoid = patches.Ellipse((x_plan[N], y_plan[N]), 2*agent_rad, 2*agent_rad, angle=0, facecolor='k', edgecolor='k')
-        # ax.add_patch(ellipsoid)
 
         n = i+2
         m = models[n]
@@ -109,22 +86,10 @@ def plot_traj(trajs, tubes, tubes_f, approxes, models, static_obst, N_agent, ini
         tube = tubes[n]
         approx = approxes[n]
         for t in range(1, N):
-            # ellipsoid = patches.Ellipse((x_plan[t], y_plan[t]), 2*(tube[t,0]+agent_rad), 2*(tube[t,1]+agent_rad), angle=0, facecolor=colors[n], edgecolor=colors[n])
-            # ax.add_patch(ellipsoid)
             plot_reachable_set((x_plan[t], y_plan[t]), agent_rad, tube[t,0], tube[t,1], approx[t,0], colors[n], ax=ax)
         tube_f = tubes_f[n]
-        # ellipsoid = patches.Ellipse((x_plan[N], y_plan[N]), 2*(tube_f[0]+agent_rad), 2*(tube_f[1]+agent_rad), angle=0, facecolor=colors[n], edgecolor=colors[n])
-        # ax.add_patch(ellipsoid)
         plot_reachable_set((x_plan[N], y_plan[N]), agent_rad, tube_f[0], tube_f[1], approx[N,0], colors[n], ax=ax)
 
-        # for t in range(1, N):
-        #     ellipsoid = patches.Ellipse((x_plan[t], y_plan[t]), 2*agent_rad, 2*agent_rad, angle=0, facecolor='k', edgecolor='k')
-        #     ax.add_patch(ellipsoid)
-        # ellipsoid = patches.Ellipse((x_plan[N], y_plan[N]), 2*agent_rad, 2*agent_rad, angle=0, facecolor='k', edgecolor='k')
-        # ax.add_patch(ellipsoid)
-    
-    # rect = patches.Rectangle((-1.6,-1.), 3.2, 2.)
-    # ax.add_patch(rect)
     ax.set_xlabel("x")
     ax.set_ylabel("y")
     ax.set_aspect("auto")
@@ -132,12 +97,11 @@ def plot_traj(trajs, tubes, tubes_f, approxes, models, static_obst, N_agent, ini
     ax.set_ylim(bottom=0., top=2.)
     ax.set_xbound(lower=0., upper=3.2)
     ax.set_ybound(lower=0., upper=2)
-    ax.set_title("Heterogeneous Team MPC Planning")
     ax.grid(True)
     ax.axis("equal")
 
 
-def main():
+if __name__ == "__main__":
     N_agent = 6
     T = 30
 
@@ -193,25 +157,25 @@ def main():
     max_dists = [1.0, 0.75, 0.5] * n_teams
     half_cones = [np.pi, np.pi / 4, np.pi / 6] * n_teams
 
-    q_leader = 2 * np.eye(m_leader.nx)
-    r_leader = np.eye(m_leader.nu)
-    qf_leader = 10 * np.eye(m_leader.nx)
+    Q_leader = 2 * np.eye(m_leader.nx)
+    R_leader = np.eye(m_leader.nu)
+    Qf_leader = 10 * np.eye(m_leader.nx)
 
-    q_follower = 2 * np.eye(m_follower.nx)
-    r_follower = np.eye(m_follower.nu)
-    qf_follower = np.zeros((m_follower.nx, m_follower.nx))
+    Q_follower = 2 * np.eye(m_follower.nx)
+    R_follower = np.eye(m_follower.nu)
+    Qf_follower = np.zeros((m_follower.nx, m_follower.nx))
 
-    q_all = [q_leader, q_follower, q_follower] * n_teams
-    r_all = [r_leader, r_follower, r_follower] * n_teams
-    qf_all = [qf_leader, qf_follower, qf_follower] * n_teams
+    Q_all = [Q_leader, Q_follower, Q_follower] * n_teams
+    R_all = [R_leader, R_follower, R_follower] * n_teams
+    Qf_all = [Qf_leader, Qf_follower, Qf_follower] * n_teams
 
-    q_reg_all = [np.eye(m.nx) * 50000 for m in models]
-    r_reg_all = [np.eye(m.nu) * 50000 for m in models]
-    qf_reg_all = [np.eye(m.nx) * 50000 for m in models]
+    Q_reg_all = [np.eye(m.nx) * 50000 for m in models]
+    R_reg_all = [np.eye(m.nu) * 50000 for m in models]
+    Qf_reg_all = [np.eye(m.nx) * 50000 for m in models]
 
-    los_targets = []
+    LOS_targets = []
     for i in range(0, N_agent, 3):
-        los_targets.extend([[], [i], [i + 1]])
+        LOS_targets.extend([[], [i], [i + 1]])
     followers = [[] for _ in range(N_agent)]
 
     use_lqr = [False] * N_agent
@@ -220,60 +184,20 @@ def main():
     prox_weight = 0.001 #0.01
     init_guess_file = "heter_team_robotarium_init.npz"
 
-    planner = IBR(
-        T,
-        q_all,
-        r_all,
-        qf_all,
-        q_reg_all,
-        r_reg_all,
-        qf_reg_all,
-        N_agent,
-        models,
-        init_states,
-        goals,
-        static_obst,
-        max_dists,
-        min_dists,
-        half_cones,
-        los_targets,
-        followers,
-        ca_weight,
-        prox_weight,
-        use_lqr,
-        init_guess_file,
-        0.2,
-    )
+    planner = IBR(T, Q_all, R_all, Qf_all, Q_reg_all, R_reg_all, Qf_reg_all,
+                  N_agent, models, init_states, goals, static_obst,
+                  max_dists, min_dists, half_cones, LOS_targets, followers,
+                  ca_weight, prox_weight, use_lqr, 0.2)
 
+    if not os.path.isfile(init_guess_file):
+        generate_initial_guess(planner, init_guess_file)
+
+    planner.initialize_solutions(init_guess_file)
     solutions = planner.solutions
-    # save_dict = {}
-    # save_dict[f"initial_trajs"] = np.empty(N_agent, dtype=object)
-    # save_dict[f"initial_inputs"] = np.empty(N_agent, dtype=object)
-    # save_dict[f"initial_vecs"] = np.empty(N_agent, dtype=object)
-    # save_dict[f"initial_tubes"] = np.empty(N_agent, dtype=object)
-    # save_dict[f"initial_tubes_f"] = np.empty(N_agent, dtype=object)
-    # save_dict[f"initial_outer_approxes"] = np.empty(N_agent, dtype=object)
-    # for i in range(N_agent):
-    #     save_dict[f"initial_trajs"][i] = np.asarray(solutions["nominal_trajs"][i])
-    #     save_dict[f"initial_inputs"][i] = np.asarray(solutions["nominal_inputs"][i])
-    #     save_dict[f"initial_vecs"][i] = np.asarray(solutions["nominal_vecs"][i])
-    #     save_dict[f"initial_tubes"][i] = np.asarray(solutions["tubes"][i])
-    #     save_dict[f"initial_tubes_f"][i] = np.asarray(solutions["tubes_f"][i])
-    #     save_dict[f"initial_outer_approxes"][i] = np.asarray(solutions["outer_approxes"][i])
-    # np.savez(f"heter_team_robotarium_init.npz", **save_dict)
-    plot_traj(
-        solutions["initial_trajs"],
-        solutions["initial_tubes"],
-        solutions["initial_tubes_f"],
-        solutions["initial_outer_approxes"],
-        models,
-        static_obst,
-        N_agent,
-        init_states,
-        goals,
-        T,
-        min_dists,
-    )
+
+    plot_traj(solutions["initial_trajs"], solutions["initial_tubes"],
+              solutions["initial_tubes_f"], solutions["initial_outer_approxes"],
+              models, static_obst, N_agent, init_states, goals, T, min_dists)
     plt.savefig("heter_team_robotarium_init.png", format="png")
 
     start = time.perf_counter()
@@ -281,23 +205,9 @@ def main():
     runtime = time.perf_counter() - start
     print(f"Runtime: {runtime:.5f}")
 
-    plot_traj(
-        solutions["nominal_trajs"],
-        solutions["tubes"],
-        solutions["tubes_f"],
-        solutions["outer_approxes"],
-        models,
-        static_obst,
-        N_agent,
-        init_states,
-        goals,
-        T,
-        min_dists,
-    )
+    plot_traj(solutions["nominal_trajs"], solutions["tubes"],
+              solutions["tubes_f"], solutions["outer_approxes"],
+              models, static_obst, N_agent, init_states, goals, T, min_dists)
     plt.savefig("heter_team_robotarium.png", format="png")
 
     save_solutions("heter_LOS_robotarium.npz", solutions, N_agent)
-
-
-if __name__ == "__main__":
-    main()

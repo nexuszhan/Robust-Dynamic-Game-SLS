@@ -14,8 +14,6 @@ def generate_initial_guess(planner:IBR, initial_guess_file:str):
     lead_init_states = [planner.init_states[i] for i in range(0, planner.N_agent, 3)]
     lead_goals = [planner.goals[i] for i in range(0, planner.N_agent, 3)]
     lead_min_dists = [planner.min_dists[i]+0.15 for i in range(0, planner.N_agent ,3)]
-    # lead_min_dists = [self.min_dists[i]+0.2 for i in range(0, self.N_agent ,3)] # Robotarium
-    # lead_min_dists = [self.min_dists[i]+0.25 for i in range(0, self.N_agent ,3)]
     solver = NLP(planner.T, [planner.Q_all[0]]*int(planner.N_agent/3), [planner.R_all[0]]*int(planner.N_agent/3), lead_models, [planner.Qf_all[0]]*int(planner.N_agent/3), lead_init_states, lead_goals, planner.static_obstacles, int(planner.N_agent/3), lead_min_dists)
     
     solution = solver.solve(lead_init_states)
